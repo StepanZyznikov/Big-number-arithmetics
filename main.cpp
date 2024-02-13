@@ -34,9 +34,9 @@ public:
         for (int i = s_len - 1; i >= 0; i -= 1)
         {
             if (begin_flag && (s[i] == '0' || s[i] == '.'))
-            {
                 this->mantissa_size -= (s[i] == '0');
-            } else {
+            else
+            {
                 begin_flag = false;
                 if (s[i] == '0')
                     zeros_counter += 1;
@@ -60,9 +60,9 @@ public:
         int temp_a = a;
         int begin_flag = 1;
         while (temp_a > 0) {
-            if (temp_a % NUM_SYS == 0 && begin_flag == 1) {
+            if (temp_a % NUM_SYS == 0 && begin_flag == 1)
                 this->mantissa_size -= 1;
-            } else {
+            else {
                 this->exp.push_back(i2c(temp_a % NUM_SYS));
                 begin_flag = 0;
             }
@@ -104,7 +104,7 @@ public:
     }
 
     [[nodiscard]]
-    int get_digit_by_place(int place) const
+    int get_digit_by_place(const int place) const
     {
         if (place + this->get_mantissa_size() < 0 || place > this->get_size() - this->get_mantissa_size() - 1)
             return 0;
@@ -112,10 +112,20 @@ public:
             return c2i(this->exp[place + this->get_mantissa_size()]);
     }
 
-    void print() const {
-        if (this->is_zero()) {
-            std::cout << 0;
+    bignum round (int wanted_mantissa_size = 0) const
+    {
+        if (wanted_mantissa_size >= this->get_mantissa_size())
+            return *this;
+        else {
+            std::vector<char> new_exp = this->get_exp();
+            new_exp.erase(new_exp.begin(), new_exp.begin() + this->get_mantissa_size() - wanted_mantissa_size);
+            return {new_exp, wanted_mantissa_size, this->get_sign()};
         }
+    }
+
+    void print() const {
+        if (this->is_zero())
+            std::cout << 0;
         else
         {
             if (this->get_sign() == -1)
@@ -134,10 +144,8 @@ public:
     {
         bool flag = true;
         for (int i = -this->get_mantissa_size(); i < this->get_integer_size(); i += 1)
-        {
             if (this->get_digit_by_place(i) != 0)
                 flag = false;
-        }
         return flag;
     }
 
@@ -150,10 +158,8 @@ public:
         int max_integer_size = std::max(this->get_integer_size(), num.get_integer_size());
         int max_mantissa_size = std::max(this->get_mantissa_size(), num.get_mantissa_size());
         for (int i = -max_mantissa_size; i < max_integer_size; i += 1)
-        {
             if (this->get_digit_by_place(i) != num.get_digit_by_place(i))
                 return false;
-        }
         return true;
     }
 
@@ -365,9 +371,9 @@ public:
             next_digit = curr_digit / NUM_SYS;
             curr_digit = curr_digit % NUM_SYS;
 
-            if (begin_flag && curr_digit == 0) {
+            if (begin_flag && curr_digit == 0)
                 new_mantissa_size -= 1;
-            } else {
+            else {
                 begin_flag = false;
                 new_exp.push_back(i2c(curr_digit));
             }
@@ -376,7 +382,6 @@ public:
             new_exp.push_back(i2c(next_digit));
         return {new_exp, new_mantissa_size, this->get_sign() * num.get_sign()};
     }
-
 
     [[nodiscard]]
     bignum division(const bignum& num, int wanted_precision = 10) const
@@ -423,8 +428,7 @@ public:
         }
     }
 
-    bignum operator/(const bignum& num) const
-    {
+    bignum operator/(const bignum& num) const{
         return this->division(num);
     }
 
@@ -458,9 +462,29 @@ std::ostream &operator<<(std::ostream &os, const bignum &a) {
     return os;
 }
 
+bignum pi(int precision)
+{
+    bignum curr_pi = 0_bn;
+    bignum a = 1_bn / 5_bn, b = (1_bn).division(239_bn, precision);
+    bignum a2 = a * a, b2 = b * b;
+    bignum curr_a = a, curr_b = b;
+    //int prev_iter_num, curr_iter_num = -1;
+    for (int i = 1; i < 150; i += 2)
+    {
+        if ((i-1)/2%2==0)
+            curr_pi += 16_bn * curr_a.division(bignum(i), precision) - 4_bn * curr_b.division(bignum(i), precision);
+        else
+            curr_pi -= 16_bn * curr_a.division(bignum(i), precision) - 4_bn * curr_b.division(bignum(i), precision);
+        curr_a *= a2, curr_b *= b2;
+        curr_pi = curr_pi.round(precision);
+    }
+    return curr_pi;
+}
+
 int main()
 {
     auto start = std::chrono::high_resolution_clock::now();
+    std::cout << pi(105) << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float, std::milli> duration = end - start;
