@@ -7,11 +7,11 @@
 
 // G g H h '
 
-int c2i(char c) {
+int c2i(const char c) {
     return (int) (c - '0');
 }
 
-char i2c(int i) {
+char i2c(const int i) {
     return (char) (i + '0');
 }
 
@@ -305,11 +305,12 @@ public:
     }
 
     [[nodiscard]]
-    bignum split(int piece) const // Игноpиpует значение длины мантиссы!
+    bignum split(int len, int piece) const // Игноpиpует значение длины мантиссы и знак!
     {
         if (piece == 0)
         {
-            int len = (this->get_size() + 1) / 2;
+            if (len > this->get_size())
+                len = this->get_size();
             std::vector<char> new_exp = this->get_exp();
             new_exp.resize(len);
             int zeros_counter = 0;
@@ -326,24 +327,7 @@ public:
             return {new_exp, 0, 1};
         }
         else
-        {
-            int len = this->get_size() / 2;
-            int zeros_counter = 0;
-            if (len != 0)
-            {
-                for (int i = this->get_size() - len; i < this->get_size(); i += 1) {
-                    if (this->get_digit_by_index(i) == 0)
-                        zeros_counter += 1;
-                    else {
-                        return (this->round(-(this->get_size() - len + zeros_counter))).shift(
-                                -(this->get_size() - len + zeros_counter));
-                    }
-                }
-                return (this->round(-(this->get_size() - len))).shift(-(this->get_size() - len));
-            }
-            else
-                return bignum(0);
-        }
+            return this->shift(this->get_mantissa_size() - len).round(0);
     }
 
     bignum operator+(const bignum& num) const {
@@ -444,18 +428,20 @@ public:
 
     bignum operator*(const bignum& num) const
     {
-        if (this->get_size() >= 20 && num.get_size() >= 20)
+        if (this->get_size() >= 40 && num.get_size() >= 40)
         {
-            int len = (this->get_size() + 1) / 2;
-            bignum a = this->split(1).abs();
-            bignum b = this->split(0).abs();
-            bignum c = num.split(1).abs();
-            bignum d = num.split(0).abs();
+            int len = std::max((this->get_size() + 1)/2, (num.get_size() + 1)/2);
+            bignum a = this->split(len, 1).abs();
+            bignum b = this->split(len, 0).abs();
+            bignum c = num.split(len, 1).abs();
+            bignum d = num.split(len, 0).abs();
             bignum ac = a*c;
             bignum bd = b*d;
             int curr_sign = this->get_sign()*num.get_sign();
             int mantissa_sum = this->get_mantissa_size() + num.get_mantissa_size();
-            return bignum(curr_sign) * (ac.shift(2*len) + ((a+b) * (c+d) - ac - bd).shift(len) + bd).shift(-mantissa_sum);
+            bignum result = ((ac.shift(2*len) + ((a+b) * (c+d) - ac - bd).shift(len) + bd).shift(-mantissa_sum));
+            result.sign=curr_sign;
+            return result;
         }
         else
             return this->regular_multiplication(num);
@@ -510,19 +496,20 @@ public:
         return this->division(num);
     }
 
-    bignum operator+=(const bignum& num) {
+    void operator+=(const bignum& num) {
         *this = *this + num;
-        return *this;
     }
 
-    bignum operator-=(const bignum& num) {
+    void operator-=(const bignum& num) {
         *this = *this - num;
-        return *this;
     }
 
-    bignum operator*=(const bignum& num) {
+    void operator*=(const bignum& num) {
         *this = *this * num;
-        return *this;
+    }
+
+    void operator/=(const bignum& num) {
+        *this = *this / num;
     }
 
 private:
@@ -553,6 +540,9 @@ bignum pi(int precision)
         else
             curr_pi -= 16_bn * curr_a.division(bignum(i), precision) - 4_bn * curr_b.division(bignum(i), precision);
         curr_a *= a2, curr_b *= b2;
+        curr_a = curr_a.round(precision);
+        curr_b = curr_b.round(precision);
+        curr_pi = curr_pi.round(precision);
     }
     return curr_pi;
 }
@@ -561,7 +551,7 @@ int main()
 {
     auto start = std::chrono::high_resolution_clock::now();
 
-    //std::cout << pi(105) << std::endl;
+    std::cout << pi(105) << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
     std::chrono::duration<float, std::milli> duration = end - start;
