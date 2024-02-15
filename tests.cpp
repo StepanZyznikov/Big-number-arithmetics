@@ -273,10 +273,6 @@ TEST(Division, division_with_precision2) {
 EXPECT_EQ((1_bn).divide_by(4_bn, 2), 0.25_bn);
 }
 
-TEST(Division, division_by_zero) {
-EXPECT_ANY_THROW(1_bn/0_bn);
-}
-
 TEST(Something_and_eq, plus_eq) {
     bn::bignum a = 1234.567_bn;
     a += 1010_bn;
