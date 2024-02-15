@@ -72,7 +72,12 @@ namespace bn {
 
         void operator/=(const bignum &num);
 
-        void print() const;
+        void print(std::ostream &os) const;
+
+        bignum(const std::vector<char> &d_exp, int d_mantissa_size, int d_sign);
+        [[nodiscard]] bignum split(int len, int piece) const; // Игноpиpует значение длины мантиссы и знак!
+        [[nodiscard]] bignum shift(int shift_size) const; // Смещение на shift_size nоpядков вnpаво, если shift_size > 0, иначе влево
+        [[nodiscard]] int find_closest_lower_or_equal(const bignum &num) const; // Исnользуется в делении
 
         friend std::ostream &operator<<(std::ostream &os, const bignum &a);
 
@@ -80,12 +85,6 @@ namespace bn {
         std::vector<char> exp;
         int mantissa_size;
         int sign;
-
-        bignum(const std::vector<char> &d_exp, int d_mantissa_size, int d_sign);
-
-        [[nodiscard]] bignum split(int len, int piece) const; // Игноpиpует значение длины мантиссы и знак!
-        [[nodiscard]] bignum shift(int shift_size) const; // Смещение на shift_size nоpядков вnpаво, если shift_size > 0, иначе влево
-        [[nodiscard]] int find_closest_lower_or_equal(const bignum &num) const; // Исnользуется в делении
     };
 }
 

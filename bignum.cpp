@@ -1,7 +1,6 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include <chrono>
 #include "bignum.h"
 #define NUM_SYS 10
 
@@ -18,12 +17,11 @@ bn::bignum operator "" _bn(const char *s) {
 }
 
 std::ostream &bn::operator<<(std::ostream &os, const bn::bignum &a) {
-    a.print();
+    a.print(os);
     return os;
 }
 
 namespace bn {
-
     bignum::bignum(const std::string &s) {
         this->sign = ((int) s.find('-') == -1) ? 1 : -1;
 
@@ -58,12 +56,14 @@ namespace bn {
     }
 
     bignum::bignum(const int a) {
-        if (a < 0)
+        int temp_a = a;
+        if (a < 0) {
             this->sign = -1;
+            temp_a *= -1;
+        }
         else
             this->sign = 1;
         this->mantissa_size = 0;
-        int temp_a = a;
         int begin_flag = 1;
         while (temp_a > 0) {
             if (temp_a % NUM_SYS == 0 && begin_flag == 1)
@@ -129,18 +129,18 @@ namespace bn {
         }
     }
 
-    void bignum::print() const {
+    void bignum::print(std::ostream &os) const {
         if (this->is_zero())
-            std::cout << 0;
+            os << 0;
         else
         {
             if (this->get_sign() == -1)
-                std::cout << "-";
+                os << "-";
             for (int i = std::max(0, this->get_integer_size() - 1); i >= std::min(-this->get_mantissa_size(), 0); i -= 1)
             {
-                std::cout << this->get_digit_by_place(i);
+                os << this->get_digit_by_place(i);
                 if (i == 0 && this->get_mantissa_size() > 0)
-                    std::cout << ".";
+                    os << ".";
             }
         }
     }
@@ -343,7 +343,7 @@ namespace bn {
             else
             {
                 if (this->abs() < num.abs())
-                    return (-num + *this);
+                    return (num + *this);
                 else
                     return (-(-*this + - num));
             }
@@ -378,45 +378,50 @@ namespace bn {
     [[nodiscard]]
     bignum bignum::divide_by(const bignum& num, int wanted_precision) const
     {
-        if (num.is_zero()) {
-            std::cout << "divide_by by zero! Dividend: " << *this << std::endl;
-            exit(-1);
-        }
-        else
-        {
-            bignum t_this = *this;
-            bignum t_num = num.shift(this->get_integer_size()-num.get_integer_size());
-            int x;
-
-            std::vector<char> new_exp;
-            std::vector<char> new_exp_reversed;
-            int new_integer_size = this->get_integer_size() - num.get_integer_size() + 1;
-
-            if (*this < t_num) {
-                new_integer_size -= 1;
-                t_num = t_num.shift(-1);
+        try {
+            if (num.is_zero()) {
+                throw "Ошибка: Деление на ноль!";
             }
-
-            int precision = new_integer_size + std::max(std::max(this->get_mantissa_size(), num.get_mantissa_size()), wanted_precision);
-
-            for (int i = 0; i < precision; i += 1)
+            else
             {
-                if (t_this == t_num)
-                {
-                    new_exp_reversed.push_back(i2c(1));
-                    break;
+                bignum t_this = *this;
+                bignum t_num = num.shift(this->get_integer_size()-num.get_integer_size());
+                int x;
+
+                std::vector<char> new_exp;
+                std::vector<char> new_exp_reversed;
+                int new_integer_size = this->get_integer_size() - num.get_integer_size() + 1;
+
+                if (*this < t_num) {
+                    new_integer_size -= 1;
+                    t_num = t_num.shift(-1);
                 }
 
-                if (t_this.is_zero())
-                    break;
-                x = t_this.find_closest_lower_or_equal(t_num);
-                t_this -= bignum(x) * t_num;
-                t_num = t_num.shift(-1);
-                new_exp_reversed.push_back(i2c(x));
+                int precision = new_integer_size + std::max(std::max(this->get_mantissa_size(), num.get_mantissa_size()), wanted_precision);
+
+                for (int i = 0; i < precision; i += 1)
+                {
+                    if (t_this == t_num)
+                    {
+                        new_exp_reversed.push_back(i2c(1));
+                        break;
+                    }
+
+                    if (t_this.is_zero())
+                        break;
+                    x = t_this.find_closest_lower_or_equal(t_num);
+                    t_this -= bignum(x) * t_num;
+                    t_num = t_num.shift(-1);
+                    new_exp_reversed.push_back(i2c(x));
+                }
+                for (int i = (int)new_exp_reversed.size() - 1; i >= 0; i -= 1)
+                    new_exp.push_back(new_exp_reversed[i]);
+                return {new_exp, (int)new_exp.size() - new_integer_size, this->get_sign()*num.get_sign()};
             }
-            for (int i = (int)new_exp_reversed.size() - 1; i >= 0; i -= 1)
-                new_exp.push_back(new_exp_reversed[i]);
-            return {new_exp, (int)new_exp.size() - new_integer_size, this->get_sign()*num.get_sign()};
+        }
+        catch (const char* error)
+        {
+            std::cout << error << std::endl;
         }
     }
 
