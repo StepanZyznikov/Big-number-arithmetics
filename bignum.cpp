@@ -155,7 +155,7 @@ namespace bn {
         return flag;
     }
 
-    bool bignum::operator==(bignum const& num) const
+    bool bignum::operator==(const bignum& num) const
     {
         if (this->is_zero() && num.is_zero())
             return true;
@@ -169,11 +169,11 @@ namespace bn {
         return true;
     }
 
-    bool bignum::operator!=(bignum const& num) const {
+    bool bignum::operator!=(const bignum& num) const {
         return !(*this == num);
     }
 
-    bool bignum::operator>(bignum const& num) const
+    bool bignum::operator>(const bignum& num) const
     {
         if (*this == num)
             return false;
@@ -193,15 +193,15 @@ namespace bn {
         return false;
     }
 
-    bool bignum::operator>=(bignum const& num) const {
+    bool bignum::operator>=(const bignum& num) const {
         return ((*this == num) || (*this > num));
     }
 
-    bool bignum::operator<(bignum const& num) const {
+    bool bignum::operator<(const bignum& num) const {
         return !(*this >= num);
     }
 
-    bool bignum::operator<=(bignum const& num) const {
+    bool bignum::operator<=(const bignum& num) const {
         return !(*this > num);
     }
 

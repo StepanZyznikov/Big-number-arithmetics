@@ -2,13 +2,6 @@
 #include "bignum.h"
 #include "cmake-build-debug/_deps/googletest-src/googletest/include/gtest/gtest.h"
 
-TEST(Bignum_initialization, str_and_vector) {
-std::vector<char> exp = {'3', '7', '1'};
-bn::bignum a(exp, 1, -1);
-bn::bignum b("-17.3");
-EXPECT_EQ(a, b);
-}
-
 TEST(Bignum_initialization, str_and_int_positive) {
 bn::bignum a("12346780");
 bn::bignum b(12346780);
@@ -280,9 +273,9 @@ TEST(Division, division_with_precision2) {
 EXPECT_EQ((1_bn).divide_by(4_bn, 2), 0.25_bn);
 }
 
-//TEST(Division, division_by_zero) {
-//ASSERT_ANY_THROW(1_bn/0_bn);
-//}
+TEST(Division, division_by_zero) {
+EXPECT_ANY_THROW(1_bn/0_bn);
+}
 
 TEST(Something_and_eq, plus_eq) {
     bn::bignum a = 1234.567_bn;
@@ -306,33 +299,4 @@ TEST(Something_and_eq, div_eq) {
 bn::bignum a = 144_bn;
 a /= 12_bn;
 EXPECT_EQ(a, 12_bn);
-}
-
-TEST(Split, split1) {
-bn::bignum a = 123456_bn;
-EXPECT_EQ(a.split(3, 0), 456_bn);
-}
-
-TEST(Split, split2) {
-bn::bignum a = 123456_bn;
-EXPECT_EQ(a.split(3, 1), 123_bn);
-}
-
-TEST(Shift, shift1) {
-bn::bignum a = 123456_bn;
-EXPECT_EQ(a.shift(3), 123456000_bn);
-}
-
-TEST(Shift, shift2) {
-bn::bignum a = 123456_bn;
-EXPECT_EQ(a.shift(-3), 123.456_bn);
-}
-
-TEST(Shift, shift3) {
-bn::bignum a = 123456_bn;
-EXPECT_EQ(a.shift(0), 123456_bn);
-}
-
-TEST(Find_closest, find) {
-EXPECT_EQ((100_bn).find_closest_lower_or_equal(15_bn), 6);
 }

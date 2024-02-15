@@ -34,17 +34,17 @@ namespace bn {
 
         [[nodiscard]] bool is_zero() const;
 
-        bool operator==(bignum const &num) const;
+        bool operator==(const bignum &num) const;
 
-        bool operator!=(bignum const &num) const;
+        bool operator!=(const bignum& num) const;
 
-        bool operator>(bignum const &num) const;
+        bool operator>(const bignum& num) const;
 
-        bool operator>=(bignum const &num) const;
+        bool operator>=(const bignum& num) const;
 
-        bool operator<(bignum const &num) const;
+        bool operator<(const bignum& num) const;
 
-        bool operator<=(bignum const &num) const;
+        bool operator<=(const bignum& num) const;
 
         bignum operator-() const;
 
@@ -74,17 +74,17 @@ namespace bn {
 
         void print(std::ostream &os) const;
 
-        bignum(const std::vector<char> &d_exp, int d_mantissa_size, int d_sign);
-        [[nodiscard]] bignum split(int len, int piece) const; // Игноpиpует значение длины мантиссы и знак!
-        [[nodiscard]] bignum shift(int shift_size) const; // Смещение на shift_size nоpядков вnpаво, если shift_size > 0, иначе влево
-        [[nodiscard]] int find_closest_lower_or_equal(const bignum &num) const; // Исnользуется в делении
-
         friend std::ostream &operator<<(std::ostream &os, const bignum &a);
 
     private:
         std::vector<char> exp;
         int mantissa_size;
         int sign;
+
+        [[nodiscard]] bignum split(int len, int piece) const; // Игноpиpует значение длины мантиссы и знак!
+        [[nodiscard]] bignum shift(int shift_size) const; // Смещение на shift_size nоpядков вnpаво, если shift_size > 0, иначе влево
+        bignum(const std::vector<char> &d_exp, int d_mantissa_size, int d_sign);
+        [[nodiscard]] int find_closest_lower_or_equal(const bignum &num) const; // Исnользуется в делении
     };
 }
 
