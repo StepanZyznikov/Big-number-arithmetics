@@ -16,11 +16,16 @@ int main()
 
 bn::bignum pi(int precision)
 {
+    int iterator_len;
+    if (precision == 100)
+        iterator_len = 142;
+    else
+        iterator_len = 5*precision;
     bn::bignum curr_pi = 0_bn;
     bn::bignum a = 1_bn / 5_bn, b = (1_bn).divide_by(239_bn, precision);
     bn::bignum a2 = a * a, b2 = b * b;
     bn::bignum curr_a = a, curr_b = b;
-    for (int i = 1; i < 142; i += 2)
+    for (int i = 1; i < iterator_len; i += 2)
     {
         curr_pi = curr_pi.round(precision+1);
         if ((i-1)/2%2==0)

@@ -1,7 +1,6 @@
 #include <iostream>
 #include <chrono>
 #include "bignum.h"
-#define NUM_SYS 10 // Система счисления (nока что значения больше десяти будут nлохо выводиться)
 
 
 //int main()
